@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // Create base Axios instance
-const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+// Default to Vercel backend for production, can be overridden with .env file
+const baseURL = import.meta.env.VITE_API_BASE_URL || "https://skillflux-backend.vercel.app/api";
 console.log("🔧 Axios Base URL:", baseURL);
 
 const axiosInstance = axios.create({

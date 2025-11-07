@@ -1,4 +1,6 @@
-import { Card, CardContent, Typography, Chip, Stack, CardActions, Button } from "@mui/material";
+import React from "react";
+import { Card, CardContent, Typography, Chip, Box, Stack, CardActions, Button } from "@mui/material";
+import { getFileUrl } from "../config/api";
 import { useAuth } from "../context/AuthContext";
 import axios from "../api/axiosInstance";
 import { toast } from "react-toastify";
@@ -63,7 +65,7 @@ export default function AchievementCard({ achievement, refresh, onDelete }) {
             {achievement.proofFiles.map((file, idx) => (
               <a 
                 key={idx}
-                href={`http://localhost:5000${file}`} 
+                href={getFileUrl(file)} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 style={{ marginRight: '8px' }}

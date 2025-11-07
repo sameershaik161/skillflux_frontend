@@ -14,6 +14,7 @@ import {
   Award, TrendingUp, ArrowLeft, BookOpen, GraduationCap
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { getFileUrl } from "../../config/api";
 
 export default function Students() {
   const navigate = useNavigate();
@@ -189,7 +190,7 @@ export default function Students() {
 
   const handleDownloadCertificate = async (achievement) => {
     if (achievement.certificateUrl) {
-      window.open(`http://localhost:5000${achievement.certificateUrl}`, '_blank');
+      window.open(getFileUrl(achievement.certificateUrl), '_blank');
     } else {
       toast.error("No certificate available");
     }
@@ -582,7 +583,7 @@ export default function Students() {
                       {/* Avatar and Name */}
                       <Box className="flex flex-col items-center mb-3">
                         <Avatar
-                          src={student.profilePicUrl ? `http://localhost:5000${student.profilePicUrl}` : undefined}
+                          src={student.profilePicUrl ? getFileUrl(student.profilePicUrl) : undefined}
                           sx={{
                             width: 80,
                             height: 80,
@@ -700,7 +701,7 @@ export default function Students() {
                       <TableCell>
                         <Box className="flex items-center gap-3">
                           <Avatar
-                            src={student.profilePicUrl ? `http://localhost:5000${student.profilePicUrl}` : undefined}
+                            src={student.profilePicUrl ? getFileUrl(student.profilePicUrl) : undefined}
                             sx={{
                               width: 40,
                               height: 40,
@@ -778,7 +779,7 @@ export default function Students() {
                   {/* Student Info */}
                   <Box className="flex items-center gap-4 mb-4">
                     <Avatar
-                      src={selectedStudent.profilePicUrl ? `http://localhost:5000${selectedStudent.profilePicUrl}` : undefined}
+                      src={selectedStudent.profilePicUrl ? getFileUrl(selectedStudent.profilePicUrl) : undefined}
                       sx={{
                         width: 100,
                         height: 100,

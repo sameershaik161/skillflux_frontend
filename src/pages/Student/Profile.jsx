@@ -11,6 +11,7 @@ import {
   TrendingUp, Target, Zap, Shield, CheckCircle, Clock,
   Medal, Plus
 } from "lucide-react";
+import { getFileUrl } from "../../config/api";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -177,7 +178,7 @@ export default function Profile() {
                   }
                 >
                   <Avatar
-                    src={profile.profilePicUrl ? `http://localhost:5000${profile.profilePicUrl}` : undefined}
+                    src={profile.profilePicUrl ? getFileUrl(profile.profilePicUrl) : undefined}
                     sx={{ 
                       width: 128, 
                       height: 128, 
@@ -444,7 +445,7 @@ export default function Profile() {
                         </Box>
                       </Box>
                       <Button
-                        href={`http://localhost:5000${profile.resumeUrl}`}
+                        href={getFileUrl(profile.resumeUrl)}
                         target="_blank"
                         variant="contained"
                         startIcon={<Download className="w-4 h-4" />}

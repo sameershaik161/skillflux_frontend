@@ -4,6 +4,7 @@ import axios from "../../api/axiosInstance";
 import { Container, Typography, Paper, Button, Stack, TextField, Box, Chip, CircularProgress, Tabs, Tab, Collapse, Alert, LinearProgress, Divider } from "@mui/material";
 import { toast } from "react-toastify";
 import { Psychology, TipsAndUpdates } from "@mui/icons-material";
+import { getFileUrl } from "../../config/api";
 
 export default function ManageAchievements() {
   const location = useLocation();
@@ -152,7 +153,7 @@ export default function ManageAchievements() {
                     {a.proofFiles.map((file, idx) => (
                       <a 
                         key={idx}
-                        href={`http://localhost:5000${file}`} 
+                        href={getFileUrl(file)} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         style={{ marginRight: '12px', display: 'inline-block', marginTop: '4px' }}
