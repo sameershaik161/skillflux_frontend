@@ -185,7 +185,7 @@ export default function Landing() {
               <Typography variant="body2" sx={{ color: 'white', mt: 4, textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)', fontSize: '1rem' }}>
                 Administrator? 
                 <Button 
-                  onClick={() => navigate("/login")} 
+                  onClick={() => navigate("/admin-login")} 
                   sx={{ 
                     color: 'white',
                     textTransform: 'none',

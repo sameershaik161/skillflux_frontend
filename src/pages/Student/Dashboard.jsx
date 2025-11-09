@@ -15,6 +15,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [tab, setTab] = useState(0);
+  const [activities, setActivities] = useState([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [stats, setStats] = useState({
     totalPoints: 0,
     rank: 0,
@@ -24,25 +26,43 @@ export default function Dashboard() {
     monthlyGrowth: 0
   });
 
+  const fetchActivities = async () => {
+    try {
+      setActivitiesLoading(true);
+      const res = await axios.get("/activities/recent");
+      setActivities(res.data);
+    } catch (err) {
+      console.error("Failed to fetch activities:", err);
+    } finally {
+      setActivitiesLoading(false);
+    }
+  };
+
   const fetchAchievements = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/achievements/me");
-      setAchievements(res.data);
+      const [achievementsRes, rankRes] = await Promise.all([
+        axios.get("/achievements/me"),
+        axios.get("/auth/my-rank").catch(err => ({ data: { rank: 0 } }))
+      ]);
+      setAchievements(achievementsRes.data);
       
       // Calculate stats
-      const approved = res.data.filter(a => a.status === 'approved');
-      const pending = res.data.filter(a => a.status === 'pending');
+      const approved = achievementsRes.data.filter(a => a.status === 'approved');
+      const pending = achievementsRes.data.filter(a => a.status === 'pending');
       const totalPoints = approved.reduce((sum, a) => sum + (a.points || 0), 0);
       
       setStats({
         totalPoints: user?.totalPoints || totalPoints,
-        rank: Math.floor(Math.random() * 10) + 1, // Mock rank
-        totalAchievements: res.data.length,
+        rank: rankRes.data.rank || 0,
+        totalAchievements: achievementsRes.data.length,
         pendingCount: pending.length,
         approvedCount: approved.length,
         monthlyGrowth: 12.5 // Mock growth
       });
+      
+      // Fetch activities after achievements load
+      fetchActivities();
     } catch (err) {
       console.error("Failed to fetch achievements:", err);
       toast.error("Failed to load achievements");
@@ -161,12 +181,20 @@ export default function Dashboard() {
                 >
                   <Card 
                     elevation={0}
+                    onClick={() => {
+                      if (stat.title === "Your Rank") {
+                        navigate("/leaderboard");
+                      } else if (stat.title === "Achievements") {
+                        navigate("/achievements");
+                      }
+                    }}
                     sx={{
                       p: 3,
                       backgroundColor: 'white',
                       border: '1px solid #E5E7EB',
                       borderRadius: '12px',
                       transition: 'all 0.3s ease',
+                      cursor: stat.title === "Your Rank" || stat.title === "Achievements" ? 'pointer' : 'default',
                       '&:hover': {
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
                       }
@@ -255,7 +283,7 @@ export default function Dashboard() {
                         >
                           <Card 
                             className="p-4 hover:shadow-lg transition-all cursor-pointer border border-gray-100"
-                            onClick={() => navigate(`/achievement/${achievement._id}`)}
+                            onClick={() => navigate("/dashboard")}
                           >
                             <Box className="flex items-start justify-between">
                               <Box className="flex gap-4">
@@ -391,33 +419,76 @@ export default function Dashboard() {
 
                 {/* Recent Activity */}
                 <Card className="p-6 shadow-xl backdrop-blur-xl bg-white/90 border-0">
-                  <Box className="flex items-center gap-3 mb-4">
-                    <Box className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
-                      <Activity className="w-5 h-5 text-white" />
+                  <Box className="flex items-center justify-between mb-4">
+                    <Box className="flex items-center gap-3">
+                      <Box className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
+                        <Activity className="w-5 h-5 text-white" />
+                      </Box>
+                      <Typography variant="h6" className="font-semibold">
+                        Recent Activity
+                      </Typography>
                     </Box>
-                    <Typography variant="h6" className="font-semibold">
-                      Recent Activity
-                    </Typography>
+                    <IconButton 
+                      size="small" 
+                      onClick={fetchActivities}
+                      disabled={activitiesLoading}
+                    >
+                      <RefreshCw className={`w-4 h-4 ${activitiesLoading ? 'animate-spin' : ''}`} />
+                    </IconButton>
                   </Box>
                   <Box className="space-y-3">
-                    {[
-                      { text: "Achievement approved", time: "2 hours ago", icon: CheckCircle, color: "text-green-600" },
-                      { text: "Points updated", time: "5 hours ago", icon: TrendingUp, color: "text-blue-600" },
-                      { text: "New announcement", time: "1 day ago", icon: Megaphone, color: "text-purple-600" },
-                      { text: "Profile updated", time: "2 days ago", icon: User, color: "text-gray-600" },
-                    ].map((activity, index) => (
-                      <Box key={index} className="flex items-start gap-3">
-                        <activity.icon className={`w-5 h-5 mt-0.5 ${activity.color}`} />
-                        <Box className="flex-1">
-                          <Typography variant="body2" className="text-gray-700">
-                            {activity.text}
-                          </Typography>
-                          <Typography variant="caption" className="text-gray-500">
-                            {activity.time}
-                          </Typography>
+                    {activitiesLoading ? (
+                      [1, 2, 3].map(i => (
+                        <Box key={i} className="flex items-start gap-3">
+                          <Skeleton variant="circular" width={20} height={20} />
+                          <Box className="flex-1">
+                            <Skeleton width="80%" />
+                            <Skeleton width="40%" />
+                          </Box>
                         </Box>
+                      ))
+                    ) : activities.length > 0 ? (
+                      activities.map((activity, index) => {
+                        const IconComponent = activity.icon === 'CheckCircle' ? CheckCircle
+                          : activity.icon === 'TrendingUp' ? TrendingUp
+                          : activity.icon === 'Clock' ? Clock
+                          : activity.icon === 'User' ? User
+                          : Activity;
+                        
+                        const colorClass = activity.color === 'green' ? 'text-green-600'
+                          : activity.color === 'blue' ? 'text-blue-600'
+                          : activity.color === 'orange' ? 'text-orange-600'
+                          : activity.color === 'red' ? 'text-red-600'
+                          : 'text-gray-600';
+                        
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                          >
+                            <Box className="flex items-start gap-3">
+                              <IconComponent className={`w-5 h-5 mt-0.5 ${colorClass}`} />
+                              <Box className="flex-1">
+                                <Typography variant="body2" className="text-gray-700">
+                                  {activity.text}
+                                </Typography>
+                                <Typography variant="caption" className="text-gray-500">
+                                  {activity.relativeTime}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </motion.div>
+                        );
+                      })
+                    ) : (
+                      <Box className="text-center py-4">
+                        <Typography variant="body2" className="text-gray-500">
+                          No recent activity
+                        </Typography>
                       </Box>
-                    ))}
+                    )}
                   </Box>
                 </Card>
               </Box>

@@ -24,6 +24,13 @@ axiosInstance.interceptors.request.use(
     } else {
       console.log("⚠️ No token found in localStorage");
     }
+    
+    // If the request contains FormData, remove Content-Type to let browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+      console.log("📎 FormData detected - Content-Type will be auto-set");
+    }
+    
     return config;
   },
   (error) => {

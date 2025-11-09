@@ -17,6 +17,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [file, setFile] = useState(null);
+  const [banner, setBanner] = useState(null);
   const [resume, setResume] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -32,21 +33,35 @@ export default function Profile() {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get("/auth/me");
-      setProfile(res.data);
+      const [profileRes, achievementsRes, rankRes] = await Promise.all([
+        axios.get("/auth/me"),
+        axios.get("/achievements/me").catch((err) => {
+          console.log("Achievements fetch error:", err.response?.data);
+          return { data: [] };
+        }),
+        axios.get("/auth/my-rank").catch((err) => {
+          console.log("Rank fetch error:", err.response?.data);
+          return { data: { rank: 0 } };
+        })
+      ]);
+      setProfile(profileRes.data);
       
-      // Mock stats (would come from API)
+      // Calculate stats from actual data
+      const approved = achievementsRes.data.filter(a => a.status === 'approved');
       setStats({
-        achievements: Math.floor(Math.random() * 20) + 5,
-        rank: Math.floor(Math.random() * 10) + 1,
-        completionRate: 85,
-        badges: Math.floor(Math.random() * 5) + 1
+        achievements: achievementsRes.data.length,
+        rank: rankRes.data.rank || 0,
+        completionRate: achievementsRes.data.length > 0 
+          ? Math.round((approved.length / achievementsRes.data.length) * 100)
+          : 0,
+        badges: Math.floor(approved.length / 5) // Badge per 5 achievements
       });
       
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch profile:", err);
-      toast.error("Failed to load profile");
+      console.error("Error details:", err.response?.data || err.message);
+      toast.error(err.response?.data?.message || "Failed to load profile");
       setLoading(false);
     }
   };
@@ -84,18 +99,64 @@ export default function Profile() {
       toast.error("Please select a file first");
       return;
     }
+    
+    console.log("Uploading profile picture:", file.name, file.type, file.size);
+    
     try {
       setUploading(true);
       const fd = new FormData();
       fd.append("profilePic", file);
-      const res = await axios.post("/auth/upload-profile", fd);
+      
+      console.log("FormData created, sending request...");
+      const res = await axios.post("/auth/upload-profile", fd, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      console.log("Upload response:", res.data);
       toast.success(res.data.message || "Profile picture updated!");
       setFile(null);
       // Refresh profile data
       await fetchProfile();
     } catch (err) {
       console.error("Upload failed:", err);
+      console.error("Error details:", err.response?.data);
       toast.error(err.response?.data?.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleBanner = async () => {
+    if (!banner) {
+      toast.error("Please select a banner image first");
+      return;
+    }
+    
+    console.log("Uploading banner:", banner.name, banner.type, banner.size);
+    
+    try {
+      setUploading(true);
+      const fd = new FormData();
+      fd.append("banner", banner);
+      
+      console.log("FormData created, sending request...");
+      const res = await axios.post("/auth/upload-banner", fd, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      console.log("Upload response:", res.data);
+      toast.success(res.data.message || "Banner updated!");
+      setBanner(null);
+      // Refresh profile data
+      await fetchProfile();
+    } catch (err) {
+      console.error("Upload failed:", err);
+      console.error("Error details:", err.response?.data);
+      toast.error(err.response?.data?.message || "Banner upload failed");
     } finally {
       setUploading(false);
     }
@@ -150,8 +211,66 @@ export default function Profile() {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#F9FAFB' }}>
       {/* Hero Section with Cover */}
-      <Box sx={{ position: 'relative', height: '16rem', backgroundColor: '#6366F1' }}>
-        <Container maxWidth="lg" className="relative h-full">
+      <Box sx={{ 
+        position: 'relative', 
+        height: '16rem', 
+        backgroundColor: '#6366F1',
+        backgroundImage: profile.bannerUrl ? `url(${getFileUrl(profile.bannerUrl)})` : 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          zIndex: 0
+        }
+      }}>
+        {/* Banner Upload Button */}
+        <IconButton
+          component="label"
+          sx={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            '&:hover': {
+              backgroundColor: 'white'
+            },
+            zIndex: 10
+          }}
+        >
+          <Camera className="w-5 h-5" />
+          <input
+            hidden
+            type="file"
+            accept="image/*"
+            onChange={(e) => setBanner(e.target.files[0])}
+          />
+        </IconButton>
+        {banner && (
+          <Box sx={{ position: 'absolute', top: 16, right: 80, display: 'flex', gap: 1, zIndex: 10 }}>
+            <IconButton
+              size="small"
+              onClick={handleBanner}
+              disabled={uploading}
+              sx={{ backgroundColor: 'rgba(34, 197, 94, 0.9)', color: 'white', '&:hover': { backgroundColor: 'rgba(34, 197, 94, 1)' } }}
+            >
+              <Save className="w-4 h-4" />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={() => setBanner(null)}
+              sx={{ backgroundColor: 'rgba(239, 68, 68, 0.9)', color: 'white', '&:hover': { backgroundColor: 'rgba(239, 68, 68, 1)' } }}
+            >
+              <X className="w-4 h-4" />
+            </IconButton>
+          </Box>
+        )}
+        <Container maxWidth="lg" sx={{ position: 'relative', height: '100%', zIndex: 1 }}>
           <Box className="absolute bottom-0 left-0 right-0 transform translate-y-1/2">
             <Box className="flex flex-col md:flex-row items-center md:items-end gap-6">
               {/* Avatar */}
@@ -269,6 +388,13 @@ export default function Profile() {
                 >
                   <Card 
                     elevation={0}
+                    onClick={() => {
+                      if (stat.title === "Your Rank") {
+                        navigate("/leaderboard");
+                      } else if (stat.title === "Achievements") {
+                        navigate("/dashboard");
+                      }
+                    }}
                     sx={{
                       p: 3,
                       textAlign: 'center',
@@ -276,6 +402,7 @@ export default function Profile() {
                       border: '1px solid #E5E7EB',
                       borderRadius: '12px',
                       transition: 'all 0.3s ease',
+                      cursor: stat.title === "Your Rank" || stat.title === "Achievements" ? 'pointer' : 'default',
                       '&:hover': {
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
                       }

@@ -2,13 +2,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Landing from "./pages/Landing";
-import Login from "./pages/Auth/Login";
+import StudentLogin from "./pages/Auth/StudentLogin";
+import AdminLogin from "./pages/Auth/AdminLogin";
 import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Student/Dashboard";
 import Profile from "./pages/Student/Profile";
+import Achievements from "./pages/Student/Achievements";
 import AddAchievement from "./pages/Student/AddAchievement";
 import UpdateERP from "./pages/Student/UpdateERP";
 import Announcements from "./pages/Student/Announcements";
+import Leaderboard from "./pages/Student/Leaderboard";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ManageAchievements from "./pages/Admin/ManageAchievements";
 import Analytics from "./pages/Admin/Analytics";
@@ -27,15 +30,18 @@ export default function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<StudentLogin />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/register" element={<Register />} />
 
           {/* Student */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
           <Route path="/add" element={<ProtectedRoute><AddAchievement /></ProtectedRoute>} />
           <Route path="/update-erp" element={<ProtectedRoute><UpdateERP /></ProtectedRoute>} />
           <Route path="/announcements" element={<ProtectedRoute><Announcements /></ProtectedRoute>} />
+          <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
 
           {/* Admin */}
           <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />

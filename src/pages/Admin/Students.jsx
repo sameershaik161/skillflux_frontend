@@ -23,6 +23,7 @@ export default function Students() {
   const [loading, setLoading] = useState(true);
   const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [selectedSection, setSelectedSection] = useState("All");
+  const [selectedYear, setSelectedYear] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid"); // grid or table
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -41,6 +42,7 @@ export default function Students() {
 
   const departments = ["All", "CSE", "ECE", "Civil", "EEE", "Mechanical", "IT", "Chemical", "Biotech"];
   const sections = ["All", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S"];
+  const years = ["All", "I", "II", "III", "IV"];
 
   useEffect(() => {
     fetchStudents();
@@ -88,10 +90,11 @@ export default function Students() {
     }
   };
 
-  // Filter students by department, section, search query, achievement status, and category
+  // Filter students by department, section, year, search query, achievement status, and category
   const filteredStudents = students.filter(student => {
     const matchesDepartment = selectedDepartment === "All" || student.department === selectedDepartment;
     const matchesSection = selectedSection === "All" || student.section === selectedSection;
+    const matchesYear = selectedYear === "All" || student.year === selectedYear;
     const matchesSearch = 
       student.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -107,7 +110,7 @@ export default function Students() {
           a.category === mainCategoryFilter && a.status === 'approved'
         );
     
-    return matchesDepartment && matchesSection && matchesSearch && matchesAchievementFilter && matchesCategoryFilter;
+    return matchesDepartment && matchesSection && matchesYear && matchesSearch && matchesAchievementFilter && matchesCategoryFilter;
   });
 
   // Group students by department
@@ -413,7 +416,7 @@ export default function Students() {
                   }}
                 />
               </Grid>
-              <Grid item xs={12} md={2.5}>
+              <Grid item xs={12} md={2}>
                 <TextField
                   fullWidth
                   select
@@ -431,7 +434,27 @@ export default function Students() {
                   ))}
                 </TextField>
               </Grid>
-              <Grid item xs={12} md={2}>
+              <Grid item xs={12} md={1.5}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Year"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '8px',
+                    }
+                  }}
+                >
+                  {years.map((year) => (
+                    <MenuItem key={year} value={year}>
+                      {year === "All" ? "All" : `Year ${year}`}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={1.5}>
                 <TextField
                   fullWidth
                   select
@@ -487,7 +510,7 @@ export default function Students() {
                   ))}
                 </TextField>
               </Grid>
-              <Grid item xs={12} md={2.5}>
+              <Grid item xs={12} md={2}>
                 <Box className="flex gap-2">
                   <Button
                     fullWidth

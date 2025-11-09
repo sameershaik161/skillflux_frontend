@@ -1,9 +1,9 @@
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Menu, MenuItem, Avatar, Chip, Divider, Badge } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, Menu, MenuItem, Avatar, Chip, Divider } from "@mui/material";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu as MenuIcon, X, Trophy, User, BarChart3, FileText, Bell, LogOut, Home, Plus, Settings, Shield, Megaphone } from "lucide-react";
+import { Menu as MenuIcon, X, Trophy, User, BarChart3, FileText, LogOut, Home, Plus, Settings, Shield, Megaphone } from "lucide-react";
 import vignanLogo from "../assets/logo.jpg";
 
 export default function Navbar() {
@@ -136,12 +136,6 @@ export default function Navbar() {
 
               {/* User Menu */}
               <Box className="flex items-center space-x-3">
-                <Badge badgeContent={3} color="error" overlap="circular">
-                  <IconButton className="text-white">
-                    <Bell className="w-5 h-5" />
-                  </IconButton>
-                </Badge>
-                
                 <IconButton
                   onClick={(e) => setAnchorEl(e.currentTarget)}
                   className="p-0"
